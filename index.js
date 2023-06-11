@@ -57,6 +57,8 @@ async function run() {
 
     const cartCollection = client.db("bistroDB").collection("cartsCollection");
 
+    const paymentCollection = client.db("bistroDB").collection("paymentsCollection");
+
     // JWT
     app.post('/jwt', (req, res) => {
       const user = req.body;
@@ -187,7 +189,7 @@ async function run() {
       const {price} = req.body;
       const amount = price*100;
 
-      console.log(price, amount);
+      // console.log(price, amount);
       const paymentIntent = await stripe.paymentIntents.create({
         amount: amount,
         currency: 'usd',
@@ -197,6 +199,13 @@ async function run() {
       res.send({
         clientSecret: paymentIntent.client_secret
       })
+    })
+
+    // payment api
+    app.post('/payments', verifyJWT, async (req, res) => {
+      const payment = req.body;
+      const result = await paymentCollection.insertOne(payment);
+      res.send(result);
     })
 
     // Send a ping to confirm a successful connection
