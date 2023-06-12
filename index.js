@@ -230,7 +230,29 @@ async function run() {
     })
 
     app.get('/order-stats', async (req, res) => {
-      
+      const pipeline = [
+        {
+          $lookup: {
+            from: 'menu',
+            localField: 'menuItems',
+            foreignField: '_id',
+            as: 'menuItemsData'
+          }
+        },
+        {
+          $unwind: '$menuItemsData'
+        },
+        {
+          $group: {
+            _id: '$menuItemsData.category',
+            count: {$sum : 1},
+            totalPrice: { $sum: '$menuItemsData.price' }
+          }
+        }
+      ]
+
+      const result = await paymentCollection.aggregate(pipeline).toArray();
+      res.send(result);
     })
 
     // Send a ping to confirm a successful connection
